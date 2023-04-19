@@ -26,37 +26,33 @@ Magenta = Fore.MAGENTA
 
 
 def xBal(address):
-    urlblock = "https://ethereum.atomicwallet.io/address/" + address
+    urlblock = f"https://ethereum.atomicwallet.io/address/{address}"
     respone_block = requests.get(urlblock)
     byte_string = respone_block.content
     source_code = html.fromstring(byte_string)
     xpatch_txid = '/html/body/main/div/div[2]/div[1]/table/tbody/tr[4]/td[2]'
     treetxid = source_code.xpath(xpatch_txid)
-    xVol = str(treetxid[0].text_content())
-    return xVol
+    return str(treetxid[0].text_content())
 
 
 mylist = []
 
 with open('words.txt', newline='', encoding='utf-8') as f:
-    for line in f:
-        mylist.append(line.strip())
+    mylist.extend(line.strip() for line in f)
 
 
 class BrainWallet:
 
     @staticmethod
     def generate_address_from_passphrase(passphrase):
-        private_key = str(hashlib.sha256(
-            passphrase.encode('utf-8')).hexdigest())
+        private_key = hashlib.sha256(passphrase.encode('utf-8')).hexdigest()
         address = BrainWallet.generate_address_from_private_key(private_key)
         return private_key, address
 
     @staticmethod
     def generate_address_from_private_key(private_key):
         public_key = BrainWallet.__private_to_public(private_key)
-        address = BrainWallet.__public_to_address(public_key)
-        return address
+        return BrainWallet.__public_to_address(public_key)
 
     @staticmethod
     def __private_to_public(private_key):
@@ -66,8 +62,7 @@ class BrainWallet:
         key_bytes = key.to_string()
         key_hex = codecs.encode(key_bytes, 'hex')
         bitcoin_byte = b'04'
-        public_key = bitcoin_byte + key_hex
-        return public_key
+        return bitcoin_byte + key_hex
 
     @staticmethod
     def __public_to_address(public_key):
@@ -90,8 +85,7 @@ class BrainWallet:
         sha256_2_hex = codecs.encode(sha256_2_nbpk_digest, 'hex')
         checksum = sha256_2_hex[:8]
         address_hex = (network_bitcoin_public_key + checksum).decode('utf-8')
-        wallet = BrainWallet.base58(address_hex)
-        return wallet
+        return BrainWallet.base58(address_hex)
 
     @staticmethod
     def base58(address_hex):
@@ -105,32 +99,85 @@ class BrainWallet:
             b58_string = digit_char + b58_string
             address_int //= 58
         ones = leading_zeros // 2
-        for one in range(ones):
-            b58_string = '1' + b58_string
+        for _ in range(ones):
+            b58_string = f'1{b58_string}'
         return b58_string
 
 
 count = 0
 start = 3
 win = 0
-for i in range(0, len(mylist)):
+for i in range(len(mylist)):
     count += 2
     passphrase = mylist[i]
     wallet = BrainWallet()
     private_key, address = wallet.generate_address_from_passphrase(passphrase)
     ran = int(private_key, 16)
-    addr = ice.privatekey_to_ETH_address(int(ran))
+    addr = ice.privatekey_to_ETH_address(ran)
     priv: str = private_key
     bal = xBal(addr)
     if int(bal) > 0:
         win += 1
         with open("EthWinnerFile_BrainPro.txt", "a") as f:
-            f.write('\nAddress: ' + str(addr) + '           BALANCE:' + str(bal) + '\n PRIVATEKEY: ' + str(priv) +
-                    '\nPassphrase: ' + str(passphrase) + '\nDEC: ' + str(ran) + '\n-------------- M M D R Z A . C o M ------------\n')
+            f.write(
+                (
+                    (
+                        (
+                            '\nAddress: '
+                            + str(addr)
+                            + '           BALANCE:'
+                            + str(bal)
+                            + '\n PRIVATEKEY: '
+                            + priv
+                            + '\nPassphrase: '
+                        )
+                        + str(passphrase)
+                        + '\nDEC: '
+                    )
+                    + str(ran)
+                    + '\n-------------- M M D R Z A . C o M ------------\n'
+                )
+            )
             f.close()
 
-            print(str(Green), 'Address:', str(Magenta), str(addr), str(Green), 'Key:', str(White), str(priv),
-                  str(Magenta), ' ---- {BALANCE}:', str(Cyan), str(bal), str(Yellow), ' {Passphrase}:', str(White), str(passphrase))
+            print(
+                Green,
+                'Address:',
+                Magenta,
+                addr,
+                Green,
+                'Key:',
+                White,
+                priv,
+                Magenta,
+                ' ---- {BALANCE}:',
+                Cyan,
+                bal,
+                Yellow,
+                ' {Passphrase}:',
+                White,
+                passphrase,
+            )
     else:
-        print(str(Cyan), str(count), ' Win:', str(win), str(Red), 'Address:', str(Yellow), str(addr), str(Red), 'Key:', str(White), str(priv),
-              str(Magenta), ' ---- {BALANCE}:', str(Cyan), str(bal), str(Yellow), ' {Passphrase}:', str(White), str(passphrase))
+        print(
+            Cyan,
+            count,
+            ' Win:',
+            win,
+            Red,
+            'Address:',
+            Yellow,
+            addr,
+            Red,
+            'Key:',
+            White,
+            priv,
+            Magenta,
+            ' ---- {BALANCE}:',
+            Cyan,
+            bal,
+            Yellow,
+            ' {Passphrase}:',
+            White,
+            passphrase,
+        )

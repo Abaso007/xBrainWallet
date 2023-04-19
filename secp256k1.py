@@ -4,6 +4,7 @@
 @author: iceland
 """
 
+
 import platform
 import os
 import sys
@@ -20,16 +21,16 @@ if platform.system().lower().startswith('win'):
         pathdll = os.path.realpath(dllfile)
         ice = ctypes.CDLL(pathdll)
     else:
-        print('File {} not found'.format(dllfile))
-    
+        print(f'File {dllfile} not found')
+
 elif platform.system().lower().startswith('lin'):
     dllfile = 'ice_secp256k1.so'
     if os.path.isfile(dllfile) == True:
         pathdll = os.path.realpath(dllfile)
         ice = ctypes.CDLL(pathdll)
     else:
-        print('File {} not found'.format(dllfile))
-    
+        print(f'File {dllfile} not found')
+
 else:
     print('[-] Unsupported Platform currently for ctypes dll method. Only [Windows and Linux] is working')
     sys.exit()
@@ -44,7 +45,7 @@ COIN_AXE  =	4
 COIN_BC   = 5
 COIN_BCH  = 6
 COIN_BSD  =	7
-COIN_BTDX = 8 
+COIN_BTDX = 8
 COIN_BTG  =	9
 COIN_BTX  =	10
 COIN_CHA  =	11
@@ -363,14 +364,14 @@ def b58py(data):
     B58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 
     if data[0] == 0:
-        return "1" + b58py(data[1:])
+        return f"1{b58py(data[1:])}"
 
-    x = sum([v * (256 ** i) for i, v in enumerate(data[::-1])])
+    x = sum(v * (256 ** i) for i, v in enumerate(data[::-1]))
     ret = ""
     while x > 0:
         ret = B58[x % 58] + ret
         x = x // 58
-        
+
     return ret
 #==============================================================================
 def b58_encode(inp_bytes):
@@ -408,23 +409,22 @@ def btc_wif_to_pvk_hex(wif):
     return pvk
 #==============================================================================
 def btc_wif_to_pvk_int(wif):
-    pvk = ''
     pvk_hex = btc_wif_to_pvk_hex(wif)
-    if pvk_hex != '': pvk = int(pvk_hex, 16)
-    return pvk
+    return int(pvk_hex, 16) if pvk_hex != '' else ''
 #==============================================================================
 def btc_pvk_to_wif(pvk, is_compressed=True):
     ''' Input Privatekey can in any 1 of these [Integer] [Hex] [Bytes] form'''
     inp = ''
     suff = '01' if is_compressed == True else ''
-    if type(pvk) in [int, str]: inp = bytes.fromhex('80' + fl(pvk) + suff)
+    if type(pvk) in [int, str]:
+        inp = bytes.fromhex(f'80{fl(pvk)}{suff}')
     elif type(pvk) == bytes: inp = b'\x80' + fl(pvk) + bytes.fromhex(suff)
     else: print("[Error] Input Privatekey format [Integer] [Hex] [Bytes] allowed only")
-    if inp != '':
-        res = get_sha256(inp)
-        res2 = get_sha256(res)
-        return b58_encode(inp + res2[:4])
-    else: return inp
+    if inp == '':
+        return inp
+    res = get_sha256(inp)
+    res2 = get_sha256(res)
+    return b58_encode(inp + res2[:4])
 #==============================================================================
 def fl(sstr, length=64):
     ''' Fill input to exact 32 bytes. If input is int or str the return is str. if input is bytes return is bytes'''
@@ -556,7 +556,7 @@ def pubkey_to_ETH_address(pubkey_bytes):
     res = ice.pubkeyxy_to_ETH_address(xy)
     addr = (ctypes.cast(res, ctypes.c_char_p).value).decode('utf8')
     ice.free_memory(res)
-    return '0x'+addr
+    return f'0x{addr}'
 #==============================================================================
 def _pubkey_to_ETH_address_bytes(xy):
     res = (b'\x00') * 20
@@ -575,7 +575,7 @@ def privatekey_to_ETH_address(pvk_int):
     res = ice.privatekey_to_ETH_address(pass_int_value)
     addr = (ctypes.cast(res, ctypes.c_char_p).value).decode('utf8')
     ice.free_memory(res)
-    return '0x'+addr
+    return f'0x{addr}'
 #==============================================================================
 def _privatekey_to_ETH_address_bytes(pass_int_value):
     res = (b'\x00') * 20
